@@ -2,7 +2,7 @@ const express = require('express');
 const jwt = require('jsonwebtoken');
 
 const app = express();
-const port = 3000;
+const port = process.env.PORT || 3000;
 const SECRET_KEY = 'mi_secreto';
 
 // Middleware para verificar el token JWT
