@@ -1,18 +1,22 @@
 const express = require('express');
 const cors = require('cors');
+const fileUpload = require('express-fileupload'); 
 const corsOptions = require('./config/corsOptions');
 const authRoutes = require('./routes/authRoutes');
-const publicRoutes = require('./routes/publicRoutes');
+const graduateStudyRoutes = require('./routes/graduateStudyRoutes');
+const pdfProcessRoutes = require('./routes/pdfProcessRoutes');
 
 const app = express();
 const port = process.env.PORT || 3000;
 
 app.use(cors(corsOptions));  // Configuración de CORS
+app.use(fileUpload());
 app.use(express.json());     // Para parsear JSON en las solicitudes
 
 // Rutas
-app.use('/public', publicRoutes);  // Rutas públicas
-app.use('/auth', authRoutes);      // Rutas protegidas (requieren autenticación)
+app.use('/auth', authRoutes);  
+app.use('/graduateStudy', graduateStudyRoutes);  
+app.use('/pdf', pdfProcessRoutes);  
 
 // Iniciar el servidor
 app.listen(port, () => {
