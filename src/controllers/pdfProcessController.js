@@ -1,6 +1,5 @@
 const pdfParse = require('pdf-parse'); 
 const extractText = (async (req, res) => { 
-  console.log(req.files);
   if (!req.files || !req.files.pdfFile) {
     return res.status(400).send('No se subió ningún archivo PDF.');
   }
