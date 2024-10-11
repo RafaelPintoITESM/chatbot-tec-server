@@ -90,5 +90,23 @@ const insertGraduateStudy = (async (req, res) => {
 }
 });
 
+const deleteGraduateStudy = (async (req, res) => { 
+  try {
+  // Los datos vienen en el cuerpo de la solicitud (req.body)
+    const { id } = req.params;
+    const { resource: deletedItem } = await cosmosContainer
+    .item(id) // Pasamos el ID del elemento a actualizar
+    .delete(); // Reemplazamos el contenido con el nuevo
 
-module.exports = { getGraduateStudies, insertGraduateStudy, getGraduateStudyById };
+    res.status(200).json({
+      message: 'Dato eliminado correctamente',
+      item: deletedItem
+    });
+} catch (err) {
+  console.error("Error al insertar/actualizar datos:", err);
+  res.status(500).send("Error al insertar/actualizar datos en Cosmos DB");
+}
+});
+
+
+module.exports = { getGraduateStudies, insertGraduateStudy, getGraduateStudyById, deleteGraduateStudy };
