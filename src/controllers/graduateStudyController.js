@@ -1,112 +1,91 @@
-const { connectToContainer } = require('../services/db/cosmosClient'); // Importar la conexión de Cosmos DB
+const {getAll, getById, create, update, remove} = require('../services/db/graduateStudyRepository');
 
-let cosmosContainer;
- connectToContainer('GraduateStudies').then(cont=> cosmosContainer = cont);
-
-
-
- const getGraduateStudies = (async (_, res) => {
+const getGraduateStudies = (async (_, res) => {
   try {
-    const querySpec = {
-      query: 'SELECT c.id, c.name, c.detail from c'
-    };
-    const { resources: items } = await cosmosContainer.items.query(querySpec).fetchAll();
-
-    res.status(200).json(items.map((item, _) => { return {
-      id: item.id,
-      name: item.name,
-      detail:item.detail,
-    } }));
+    const result = await getAll();
+    res.status(200).json(result);
   } catch (err) {
     res.status(500).send("Error al obtener los elementos de Cosmos DB");
   }
 });
 
 const getGraduateStudyById = async (req, res) => {
-  const id = req.params.id;
-
   try {
-    const querySpec = {
-      query: 'SELECT * from c WHERE c.id = @id',
-      parameters: [
-        { name: '@id', value: id }
-      ]
-    };
-
-    const { resources: items } = await cosmosContainer.items.query(querySpec).fetchAll();
-
-    if (items.length === 0) {
+    const result = await getById(req.params.id);
+    
+    if (!result) {
       return res.status(404).send("Registro no encontrado");
     }
-
-    const item = items[0]; // Solo debe haber un elemento en el array
-    res.status(200).json({
-      id: item.id,
-      name: item.name,
-      detail:item.detail,
-      information: item.information,
-    });
+    res.status(200).json(result);
   } catch (err) {
     res.status(500).send("Error al obtener el elemento de Cosmos DB");
   }
 };
 
-
 const insertGraduateStudy = (async (req, res) => { 
   try {
-  // Los datos vienen en el cuerpo de la solicitud (req.body)
-  const data = req.body;
-
-  // Verificamos si el id existe en el documento
-  const querySpec = {
-    query: 'SELECT * FROM c WHERE c.id = @id',
-    parameters: [{ name: '@id', value: data.id }]
-  };
-
-  const { resources: items } = await cosmosContainer.items.query(querySpec).fetchAll();
-
-  if (items.length > 0) {
-    // Si el registro existe, lo actualizamos
-    const { resource: updatedItem } = await cosmosContainer
-      .item(data.id) // Pasamos el ID del elemento a actualizar
-      .replace(data); // Reemplazamos el contenido con el nuevo
-
-    res.status(200).json({
-      message: 'Dato actualizado correctamente',
-      item: updatedItem
-    });
-  } else {
-    // Si no existe, lo insertamos
-    const { resource: createdItem } = await cosmosContainer.items.create(data);
+    const data = req.body;
+    const result = await create(data);
 
     res.status(201).json({
-      message: 'Dato insertado correctamente',
-      item: createdItem
+      message: 'Programa de posgrado creado correctamente',
+      item: result
     });
+  } catch (err) {
+    console.error("Error al insertar datos:", err);
+    res.status(500).send("Error al insertar el programa de posgrado");
   }
-} catch (err) {
-  console.error("Error al insertar/actualizar datos:", err);
-  res.status(500).send("Error al insertar/actualizar datos en Cosmos DB");
-}
 });
+
+const updateGraduateStudy = (async (req, res) => { 
+  try {
+    const { id } = req.params;
+    const data = req.body;
+    if(!id){
+        res.status(400).send("Error, el identificador no puede ser nulo o vació");
+    }
+    else{  
+      const existEntity = await getById(id);
+      if (existEntity) {
+        const graduateStudy = {
+          id: id,
+          name : data.name,
+          detail : data.detail,
+          information : data.information
+        }
+        const result = await update(graduateStudy);
+    
+        res.status(200).json({
+          message: 'Programa de posgrado actualizado correctamente',
+          item: result
+        });
+      } else {  
+        res.status(400).json({
+          message: 'El programa de posgrado a actualizar no existe'
+        });
+      }
+    }
+  } catch (err) {
+    console.error("Error al actualizar el programa de posgrado:", err);
+    res.status(500).send("Error al actualizar el programa de posgrado");
+  }
+});
+
 
 const deleteGraduateStudy = (async (req, res) => { 
   try {
-  // Los datos vienen en el cuerpo de la solicitud (req.body)
     const { id } = req.params;
-    const { resource: deletedItem } = await cosmosContainer
-    .item(id) // Pasamos el ID del elemento a actualizar
-    .delete(); // Reemplazamos el contenido con el nuevo
+    const result = await remove(id);
 
     res.status(200).json({
       message: 'Dato eliminado correctamente',
-      item: deletedItem
+      item: result
     });
 } catch (err) {
-  console.error("Error al insertar/actualizar datos:", err);
-  res.status(500).send("Error al insertar/actualizar datos en Cosmos DB");
+  console.error("Error al eliminar programa de posgrado: ", err);
+  res.status(500).send("Error al al eliminar programa de posgrado");
 }
 });
 
 
-module.exports = { getGraduateStudies, insertGraduateStudy, getGraduateStudyById, deleteGraduateStudy };
+module.exports = { getGraduateStudies, insertGraduateStudy,updateGraduateStudy, getGraduateStudyById, deleteGraduateStudy };
