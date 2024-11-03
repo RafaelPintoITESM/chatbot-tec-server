@@ -4,10 +4,10 @@ const verifyToken = require('../middlewares/authMiddleware');
 
 const router = express.Router();
 
-router.get('/', verifyToken, getGraduateStudies); 
-router.get('/:id', verifyToken, getGraduateStudyById); 
-router.post('/', verifyToken, insertGraduateStudy); 
-router.put('/:id', verifyToken, updateGraduateStudy); 
-router.delete('/:id', verifyToken, deleteGraduateStudy); 
+router.get('/', getGraduateStudies); 
+router.get('/:id', getGraduateStudyById); 
+router.post('/', insertGraduateStudy); 
+router.put('/:id', updateGraduateStudy); 
+router.delete('/:id',  deleteGraduateStudy); 
 
 module.exports = router;
